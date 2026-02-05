@@ -59,99 +59,174 @@ export default {
       }
 
       // Build email content
-      const emailSubject = `New ${searchType === 'vin' ? 'VIN' : 'License Plate'} Check Request`;
+    const emailSubject = `EpicVIN Site – New ${searchType === 'vin' ? 'VIN' : 'Plate'} Request`;
+
       
-      let emailBody = `
+    let emailBody = `
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
   <style>
-    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-    .header { background-color: #0084ff; color: white; padding: 20px; text-align: center; }
-    .content { background-color: #f9f9f9; padding: 20px; margin-top: 20px; border-radius: 5px; }
-    .field { margin-bottom: 15px; }
-    .label { font-weight: bold; color: #0084ff; }
-    .value { color: #333; padding: 5px 0; }
-    .footer { margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666; }
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #f6f7fb;
+      font-family: "Segoe UI", Roboto, Arial, sans-serif;
+      color: #1f2937;
+    }
+    .wrapper {
+      max-width: 620px;
+      margin: 40px auto;
+      padding: 0 15px;
+    }
+    .card {
+      background: #ffffff;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.07);
+    }
+    .top-bar {
+      background-color: #2563eb;
+      padding: 18px 24px;
+      color: #ffffff;
+    }
+    .top-bar h1 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 600;
+    }
+    .sub {
+      font-size: 13px;
+      opacity: 0.9;
+      margin-top: 4px;
+    }
+    .content {
+      padding: 26px 24px;
+    }
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 18px;
+      color: #111827;
+    }
+    .row {
+      display: flex;
+      border-bottom: 1px solid #e5e7eb;
+      padding: 10px 0;
+    }
+    .row:last-child {
+      border-bottom: none;
+    }
+    .row-label {
+      width: 40%;
+      font-size: 13px;
+      color: #6b7280;
+    }
+    .row-value {
+      width: 60%;
+      font-size: 14px;
+      font-weight: 500;
+      color: #111827;
+      word-break: break-all;
+    }
+    .footer {
+      background-color: #f9fafb;
+      padding: 18px 24px;
+      text-align: center;
+      font-size: 12px;
+      color: #6b7280;
+      border-top: 1px solid #e5e7eb;
+    }
   </style>
 </head>
+
 <body>
-  <div class="container">
-    <div class="header">
-      <h1>🚗 New Vehicle Check Request</h1>
-    </div>
-    <div class="content">
-      <h2>Vehicle Information</h2>
-`;
+  <div class="wrapper">
+    <div class="card">
 
-      // Add VIN if provided
-      if (vin) {
-        emailBody += `
-      <div class="field">
-        <div class="label">VIN Number:</div>
-        <div class="value">${vin}</div>
+      <div class="top-bar">
+        <h1>Epicvin Site Entry</h1>
+        <div class="sub">New submission received</div>
       </div>
-`;
-      }
 
-      // Add Plate if provided
-      if (plate) {
-        emailBody += `
-      <div class="field">
-        <div class="label">License Plate:</div>
-        <div class="value">${plate}</div>
+      <div class="content">
+        <div class="section-title">Vehicle Details</div>
+`;
+
+// VIN
+if (vin) {
+  emailBody += `
+        <div class="row">
+          <div class="row-label">VIN Number</div>
+          <div class="row-value">${vin}</div>
+        </div>
+`;
+}
+
+// Plate
+if (plate) {
+  emailBody += `
+        <div class="row">
+          <div class="row-label">License Plate</div>
+          <div class="row-value">${plate}</div>
+        </div>
+`;
+}
+
+// State
+if (state) {
+  emailBody += `
+        <div class="row">
+          <div class="row-label">State</div>
+          <div class="row-value">${state}</div>
+        </div>
+`;
+}
+
+// Vehicle Type
+if (vehicleType) {
+  emailBody += `
+        <div class="row">
+          <div class="row-label">Vehicle Type</div>
+          <div class="row-value">${vehicleType}</div>
+        </div>
+`;
+}
+
+// Search Type
+emailBody += `
+        <div class="row">
+          <div class="row-label">Search Type</div>
+          <div class="row-value">${searchType || 'N/A'}</div>
+        </div>
+`;
+
+// Timestamp
+if (timestamp) {
+  emailBody += `
+        <div class="row">
+          <div class="row-label">Submitted At</div>
+          <div class="row-value">${new Date(timestamp).toLocaleString()}</div>
+        </div>
+`;
+}
+
+emailBody += `
       </div>
-`;
-      }
 
-      // Add State if provided
-      if (state) {
-        emailBody += `
-      <div class="field">
-        <div class="label">State:</div>
-        <div class="value">${state}</div>
+      <div class="footer">
+        This email was automatically generated from the <strong>EpicVIN Site</strong>.<br>
+        Please do not reply to this message.
       </div>
-`;
-      }
 
-      // Add Vehicle Type
-      if (vehicleType) {
-        emailBody += `
-      <div class="field">
-        <div class="label">Vehicle Type:</div>
-        <div class="value">${vehicleType}</div>
-      </div>
-`;
-      }
-
-      // Add Search Type
-      emailBody += `
-      <div class="field">
-        <div class="label">Search Type:</div>
-        <div class="value">${searchType || 'N/A'}</div>
-      </div>
-`;
-
-      // Add Timestamp
-      if (timestamp) {
-        emailBody += `
-      <div class="field">
-        <div class="label">Timestamp:</div>
-        <div class="value">${new Date(timestamp).toLocaleString()}</div>
-      </div>
-`;
-      }
-
-      emailBody += `
-    </div>
-    <div class="footer">
-      <p>This email was automatically generated from EpicVIN vehicle history check form.</p>
     </div>
   </div>
 </body>
 </html>
 `;
+
+
 
       // Send email using Web3Forms - Free, No configuration needed
       // Web3Forms is completely free and doesn't require any setup
