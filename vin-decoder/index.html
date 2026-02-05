@@ -197,62 +197,27 @@
         // Web3Forms Configuration
         const WEB3FORMS_ACCESS_KEY = '8a31cfe9-5cd5-4f84-8f73-3fe00c6753e2';
 
-        // Function to send form data directly to Web3Forms (email notification)
-        async function sendFormDataToEmail(vin, plate, state, vehicleType, searchType, customerEmail) {
+        // Function to send form data to Cloudflare Worker (email notification)
+        async function sendFormDataToEmail(vin, plate, state, vehicleType, searchType, timestamp) {
             try {
-                // Build email subject
-                const emailSubject = `New ${searchType === 'vin' ? 'VIN' : 'License Plate'} Check Request${customerEmail ? ' from ' + customerEmail : ''}`;
-                
-                // Build email message with HTML formatting
-                let emailMessage = `
-🚗 New Vehicle Check Request
-
-Customer Information:
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
-
-                if (customerEmail) {
-                    emailMessage += `\n\n👤 Customer Email: ${customerEmail}`;
-                }
-
-                emailMessage += `\n\nVehicle Information:
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
-
-                if (vin) {
-                    emailMessage += `\n\n📋 VIN Number: ${vin}`;
-                }
-                
-                if (plate) {
-                    emailMessage += `\n\n🚙 License Plate: ${plate}`;
-                }
-                
-                if (state) {
-                    emailMessage += `\n📍 State: ${state}`;
-                }
-                
-                emailMessage += `\n🚗 Vehicle Type: ${vehicleType || 'sedan'}`;
-                emailMessage += `\n🔍 Search Type: ${searchType || 'vin'}`;
-                emailMessage += `\n⏰ Timestamp: ${new Date().toLocaleString()}`;
-                emailMessage += `\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nThis email was automatically generated from EpicVINsite vehicle history check form.`;
-
-                // Create FormData for Web3Forms
-                const formData = new FormData();
-                formData.append('access_key', WEB3FORMS_ACCESS_KEY);
-                formData.append('subject', emailSubject);
-                formData.append('from_name', 'EpicVINsite Report');
-                formData.append('to', 'car.check.store@gmail.com');
-                formData.append('message', emailMessage);
-
-                // Send directly to Web3Forms API
-                const response = await fetch('https://api.web3forms.com/submit', {
+                // Send to Cloudflare Worker which handles the email with professional template
+                const response = await fetch('https://YOUR_WORKER_URL_HERE', {
                     method: 'POST',
-                    body: formData
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        vin,
+                        plate,
+                        state,
+                        vehicleType,
+                        searchType,
+                        timestamp: timestamp || new Date().toISOString()
+                    })
                 });
 
-                // Check response status
                 const result = await response.json();
                 
-                if (response.ok && result.success) {
-                    console.log('✅ Email sent successfully to car.check.store@gmail.com via Web3Forms');
+                if (result.success && result.emailSent) {
+                    console.log('✅ Email sent successfully to car.check.store@gmail.com');
                 } else {
                     console.error('❌ Failed to send email:', result.message);
                 }
@@ -261,6 +226,7 @@ Customer Information:
                 console.error('❌ Error sending form data:', error);
             }
         }
+
 
         // Paddle Checkout Function
         async function openPaddleCheckout(vin, plate, vehicleType, customerEmail) {
@@ -285,8 +251,15 @@ Customer Information:
             }
 
             // Send form data to email via Web3Forms BEFORE opening checkout
-            await sendFormDataToEmail(vin, plate, state, vehicleType, searchType, customerEmail);
-
+            // await sendFormDataToEmail(vin, plate, state, vehicleType, searchType, customerEmail);
+                 await sendDataToWorker({
+                    vin,
+                    plate,
+                    state,
+                    vehicleType,
+                    searchType,
+                    timestamp: Date.now()
+                    });
             // Get the appropriate price ID based on vehicle type
             var priceId = VEHICLE_PRICES[vehicleType] || VEHICLE_PRICES['sedan']; // default to sedan
 
